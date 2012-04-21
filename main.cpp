@@ -81,8 +81,11 @@ int read_lvl(const char* name, vvui_t* level) {
 		for(unsigned int j=0;j<l_width;++j) {
 			nb=0;
 			sscanf(buffer_p, "%hu", &nb);
-			assert(nb<16);
+			//assert(nb>0);//should not be 0??
+			assert(nb<=16);
+			if(nb>0) --nb;//0 to 15, 4bit
 			level->at(i).at(j)=(unsigned)nb;
+			
 			buffer_p+=3;
 			if(nb>=10) ++buffer_p;
 		}
@@ -103,14 +106,33 @@ UD	UDL	UDR	UDLR
 inline unsigned int get_row(const SDL_Rect pos) {
 	return (unsigned)((pos.y-status_height)/32);
 }
+inline unsigned int get_row_f(const SDL_Rect pos) {
+	return (unsigned)((pos.y-status_height)/32);
+}
+inline unsigned int get_row_c(const SDL_Rect pos) {
+	return (unsigned)((pos.y+31-status_height)/32);
+}
 
 inline unsigned int get_col(const SDL_Rect pos) {
-	return (unsigned)(pos.x/32);
+	return (unsigned)((pos.x)/32);
+}
+inline unsigned int get_col_f(const SDL_Rect pos) {
+	return (unsigned)((pos.x)/32);
+}
+inline unsigned int get_col_c(const SDL_Rect pos) {
+	return (unsigned)((pos.x+31)/32);
 }
 
 inline unsigned int get_collision(const vvui_t& level, unsigned int row, unsigned int col) {
 	return level.at(row).at(col);
 }
+
+/*
+#	L	R	LR
+U	UL	U	ULR
+D	DL	DR	DLR
+UD	UDL	UDR	UDLR
+*/
 
 inline bool can_go_left(const vvui_t& level, unsigned int row, unsigned int col) {
 	unsigned int src=get_collision(level, row, col);
@@ -118,26 +140,143 @@ inline bool can_go_left(const vvui_t& level, unsigned int row, unsigned int col)
 	unsigned int dst=get_collision(level, row, col-1);
 	return (((src%2)==0)&&((dst%4)<2));
 }
-
 inline bool can_go_right(const vvui_t& level, unsigned int row, unsigned int col) {
 	unsigned int src=get_collision(level, row, col);
-	if(col>level.at(0).size()) return false;
+	if((col+1)>=level.at(0).size()) return false;
 	unsigned int dst=get_collision(level, row, col+1);
 	return (((src%4)<2)&&((dst%2)==0));
 }
-
 inline bool can_go_up(const vvui_t& level, unsigned int row, unsigned int col) {
 	unsigned int src=get_collision(level, row, col);
 	if(row==0) return false;
 	unsigned int dst=get_collision(level, row-1, col);
-	return (((src%2)==0)&&((dst%4)<2));
+	return ((((src/4)%2)==0)&&((dst/8)==0));
 }
-
 inline bool can_go_down(const vvui_t& level, unsigned int row, unsigned int col) {
 	unsigned int src=get_collision(level, row, col);
-	if(row>level.size()) return false;
+	if((row+1)>=level.size()) return false;
 	unsigned int dst=get_collision(level, row+1, col);
-	return (((src%4)<2)&&((dst%2)==0));
+	return (((src/8)==0)&&(((dst/4)%2)==0));
+}
+
+inline bool can_go_left(const vvui_t& level, SDL_Rect pos) {
+	unsigned int row=get_row(pos);
+	bool row_m=(((unsigned int)pos.x-row*32)==row);
+	unsigned int col=get_col(pos);
+	bool col_m=(((unsigned int)pos.y-status_height-col*32)==col);
+	bool res=true;
+	if(row_m == false) {
+		if(col_m) {
+			res&=can_go_left(level, row, col);
+			res&=can_go_left(level, row, col+1);
+			res&=can_go_left(level, row+1, col);
+			res&=can_go_left(level, row+1, col+1);
+		}
+		else {
+			res&=can_go_left(level, row, col);
+			res&=can_go_left(level, row+1, col);
+		}
+	}
+	else {
+		if(col_m) {
+			res&=can_go_left(level, row, col);
+			res&=can_go_left(level, row, col+1);
+		}
+		else {
+			res&=can_go_left(level, row, col);
+		}
+	}
+	return res;
+}
+
+inline bool can_go_right(const vvui_t& level, SDL_Rect pos) {
+	unsigned int row=get_row(pos);
+	bool row_m=(((unsigned int)pos.x-row*32)==row);
+	unsigned int col=get_col(pos);
+	bool col_m=(((unsigned int)pos.y-status_height-col*32)==col);
+	bool res=true;
+	if(row_m == false) {
+		if(col_m) {
+			res&=can_go_right(level, row, col);
+			res&=can_go_right(level, row, col+1);
+			res&=can_go_right(level, row+1, col);
+			res&=can_go_right(level, row+1, col+1);
+		}
+		else {
+			res&=can_go_right(level, row, col);
+			res&=can_go_right(level, row+1, col);
+		}
+	}
+	else {
+		if(col_m) {
+			res&=can_go_right(level, row, col);
+			res&=can_go_right(level, row, col+1);
+		}
+		else {
+			res&=can_go_right(level, row, col);
+		}
+	}
+	return res;
+}
+
+inline bool can_go_up(const vvui_t& level, SDL_Rect pos) {
+	unsigned int row=get_row(pos);
+	bool row_m=(((unsigned int)pos.x-row*32)==row);
+	unsigned int col=get_col(pos);
+	bool col_m=(((unsigned int)pos.y-status_height-col*32)==col);
+	bool res=true;
+	if(row_m == false) {
+		if(col_m) {
+			res&=can_go_up(level, row, col);
+			res&=can_go_up(level, row, col+1);
+			res&=can_go_up(level, row+1, col);
+			res&=can_go_up(level, row+1, col+1);
+		}
+		else {
+			res&=can_go_up(level, row, col);
+			res&=can_go_up(level, row+1, col);
+		}
+	}
+	else {
+		if(col_m) {
+			res&=can_go_up(level, row, col);
+			res&=can_go_up(level, row, col+1);
+		}
+		else {
+			res&=can_go_up(level, row, col);
+		}
+	}
+	return res;
+}
+
+inline bool can_go_down(const vvui_t& level, SDL_Rect pos) {
+	unsigned int row=get_row(pos);
+	bool row_m=(((unsigned int)pos.x-row*32)==row);
+	unsigned int col=get_col(pos);
+	bool col_m=(((unsigned int)pos.y-status_height-col*32)==col);
+	bool res=true;
+	if(row_m == false) {
+		if(col_m) {
+			res&=can_go_down(level, row, col);
+			res&=can_go_down(level, row, col+1);
+			res&=can_go_down(level, row+1, col);
+			res&=can_go_down(level, row+1, col+1);
+		}
+		else {
+			res&=can_go_down(level, row, col);
+			res&=can_go_down(level, row+1, col);
+		}
+	}
+	else {
+		if(col_m) {
+			res&=can_go_down(level, row, col);
+			res&=can_go_down(level, row, col+1);
+		}
+		else {
+			res&=can_go_down(level, row, col);
+		}
+	}
+	return res;
 }
 
 int main(int argc, char* argv[]) {
@@ -353,18 +492,22 @@ int main(int argc, char* argv[]) {
 						case SDLK_LEFT:
 							if(x_diff_previous>0) x_diff_previous=x_diff;
 							x_diff=-1;
+							y_diff= 0;y_diff_previous=0;
 							break;
 						case SDLK_RIGHT:
 							if(x_diff_previous<0) x_diff_previous=x_diff;
 							x_diff= 1;
+							y_diff= 0;y_diff_previous=0;
 							break;
 						case SDLK_UP:
 							if(y_diff_previous>0) y_diff_previous=y_diff;
 							y_diff=-1;
+							x_diff= 0;x_diff_previous=0;
 							break;
 						case SDLK_DOWN:
 							if(y_diff_previous<0) y_diff_previous=y_diff;
 							y_diff= 1;
+							x_diff= 0;x_diff_previous=0;
 							break;
 						default:
 							break;
@@ -443,14 +586,20 @@ int main(int argc, char* argv[]) {
 		
 		//parse event
 		if(x_diff!=0) {
-			if(x_diff<0 && !can_go_left(level, get_row(player_pos), get_col(player_pos))) break;
-			if(x_diff>0 && !can_go_right(level, get_row(player_pos), get_col(player_pos))) break;
-			player_pos.x=(Sint16)(player_pos.x+x_diff*8);
+			if(x_diff<0 && can_go_left(level, get_row(player_pos), get_col_c(player_pos))) {
+				player_pos.x=(Sint16)(player_pos.x+x_diff*8);
+			}
+			if(x_diff>0 && can_go_right(level, get_row(player_pos), get_col_f(player_pos))) {
+				player_pos.x=(Sint16)(player_pos.x+x_diff*8);
+			}
 		}
 		if(y_diff!=0) {
-			if(y_diff<0 && !can_go_up(level, get_row(player_pos), get_col(player_pos))) break;
-			if(y_diff>0 && !can_go_down(level, get_row(player_pos), get_col(player_pos))) break;
-			player_pos.y=(Sint16)(player_pos.y+y_diff*8);
+			if(y_diff<0 && can_go_up(level, get_row_c(player_pos), get_col(player_pos))) {
+				player_pos.y=(Sint16)(player_pos.y+y_diff*8);
+			}
+			if(y_diff>0 && can_go_down(level, get_row_f(player_pos), get_col(player_pos))) {
+				player_pos.y=(Sint16)(player_pos.y+y_diff*8);
+			}
 		}
 		
 		//clear screen
