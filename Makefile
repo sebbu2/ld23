@@ -31,6 +31,11 @@ LDFLAGS+=-L/q/SDL/SDL-1.2.15/lib -lmingw32 -lSDLmain -lSDL -mwindows
 .DELETE_ON_ERROR:
 
 all: main.exe
+main.exe: main.cc.o level.cc.o position.cc.o collision.cc.o global.cc.o
+main.cc.o: level.hpp position.hpp collision.hpp global.hpp
+level.cc.o: global.hpp
+position.cc.o: global.hpp
+collision.cc.o: position.hpp global.hpp
 
 %.exe: %.cc.o
 	$(CXX) -o $@ $(filter %.o,$^) $(LDFLAGS) $(LOADLIBES) $(LDLIBS)

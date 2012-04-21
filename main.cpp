@@ -1,4 +1,3 @@
-#include <vector>
 #include <cstring>
 #include <cstdio>
 // #include <cstdlib>
@@ -6,279 +5,17 @@
 // #include <string>
 #include <cassert>
 #include <cerrno>
+
 #include <SDL.h>
 #include <SDL_image.h>
 #include <SDL/SDL_gfxPrimitives.h>
 #include <SDL_ttf.h>
 #include <SDL_mixer.h>
+
 #include "main.hpp"
-
-using namespace std;
-
-const char *my_errors[64];
-
-const int status_height=32;
-const int width=384;
-const int height=384+status_height;
-
-typedef vector<vector<int> > vvi_t;
-typedef vector<vector<unsigned int> > vvui_t;
-
-int read_lvl(const char* name, vvui_t* level) {
-	//declare variables
-	int res=0;
-	char* fp_res=0;
-	FILE* fp=fopen(name, "rb");
-	char buffer[577];
-	char* buffer_p=buffer;
-	
-	//read height
-	fp_res=fgets(buffer, 576, fp);
-	if(fp_res==NULL) {
-		fprintf(stderr, "[ERROR] %d - %s\n", errno, my_errors[errno]);
-		return 1;
-	}
-	unsigned int l_height=(unsigned)atoi(buffer);
-	
-	//read width
-	fp_res=fgets(buffer, 576, fp);
-	if(fp_res==NULL) {
-		fprintf(stderr, "[ERROR] %d - %s\n", errno, my_errors[errno]);
-		return 1;
-	}
-	unsigned int l_width=(unsigned)atoi(buffer);
-	
-	//allocate level
-	level->resize(l_height);
-	for(unsigned int i=0;i<l_height;++i) {
-		level->at(i).resize(l_width);
-	}
-	
-	//read level data
-#if 0
-	fp_res=fgets(buffer, 576, fp);
-	if(fp_res==NULL) {
-		fprintf(stderr, "[ERROR] %d - %s\n", errno, my_errors[errno]);
-		return 1;
-	}
-	unsigned int buf_len=strlen(buffer);
-	assert( (buf_len >= 3*l_height*l_width) && (buf_len <= 4*l_height*l_width) );
-#endif
-	
-	//parse level data
-	unsigned short nb=0;
-	for(unsigned int i=0;i<l_height;++i) {
-#if 1
-		fp_res=fgets(buffer, 576, fp);
-		buffer_p=buffer;
-		if(fp_res==NULL) {
-			fprintf(stderr, "[ERROR] %d - %s\n", errno, my_errors[errno]);
-			return 1;
-		}
-		unsigned int buf_len=strlen(buffer);
-		assert( (buf_len >= 3*l_width) && (buf_len <= 4*l_width) );
-#endif
-		for(unsigned int j=0;j<l_width;++j) {
-			nb=0;
-			res=sscanf(buffer_p, "%hu", &nb);
-			//assert(nb>0);//should not be 0??
-			assert(nb<=16);
-			assert(res==1);
-			if(nb>0) --nb;//0 to 15, 4bit
-			level->at(i).at(j)=(unsigned)nb;
-			
-			buffer_p+=3;
-			if(nb>=9) ++buffer_p;
-		}
-	}
-	
-	//quit
-	fclose(fp);
-	return res;
-}
-
-/*
-#	L	R	LR
-U	UL	U	ULR
-D	DL	DR	DLR
-UD	UDL	UDR	UDLR
-*/
-
-inline unsigned int get_row(const SDL_Rect pos) {
-	return (unsigned)((pos.y-status_height)/32);
-}
-inline unsigned int get_row_f(const SDL_Rect pos) {
-	return (unsigned)((pos.y-status_height)/32);
-}
-inline unsigned int get_row_c(const SDL_Rect pos) {
-	return (unsigned)((pos.y+31-status_height)/32);
-}
-
-inline unsigned int get_col(const SDL_Rect pos) {
-	return (unsigned)((pos.x)/32);
-}
-inline unsigned int get_col_f(const SDL_Rect pos) {
-	return (unsigned)((pos.x)/32);
-}
-inline unsigned int get_col_c(const SDL_Rect pos) {
-	return (unsigned)((pos.x+31)/32);
-}
-
-inline unsigned int get_collision(const vvui_t& level, unsigned int row, unsigned int col) {
-	return level.at(row).at(col);
-}
-
-/*
-#	L	R	LR
-U	UL	U	ULR
-D	DL	DR	DLR
-UD	UDL	UDR	UDLR
-*/
-
-inline bool can_go_left(const vvui_t& level, unsigned int row, unsigned int col) {
-	unsigned int src=get_collision(level, row, col);
-	if(col==0) return false;
-	unsigned int dst=get_collision(level, row, col-1);
-	return (((src%2)==0)&&((dst%4)<2));
-}
-inline bool can_go_right(const vvui_t& level, unsigned int row, unsigned int col) {
-	unsigned int src=get_collision(level, row, col);
-	if((col+1)>=level.at(0).size()) return false;
-	unsigned int dst=get_collision(level, row, col+1);
-	return (((src%4)<2)&&((dst%2)==0));
-}
-inline bool can_go_up(const vvui_t& level, unsigned int row, unsigned int col) {
-	unsigned int src=get_collision(level, row, col);
-	if(row==0) return false;
-	unsigned int dst=get_collision(level, row-1, col);
-	return ((((src/4)%2)==0)&&((dst/8)==0));
-}
-inline bool can_go_down(const vvui_t& level, unsigned int row, unsigned int col) {
-	unsigned int src=get_collision(level, row, col);
-	if((row+1)>=level.size()) return false;
-	unsigned int dst=get_collision(level, row+1, col);
-	return (((src/8)==0)&&(((dst/4)%2)==0));
-}
-
-inline bool can_go_left(const vvui_t& level, SDL_Rect pos) {
-	unsigned int row=get_row(pos);
-	bool row_m=(((unsigned int)pos.x-row*32)==row);
-	unsigned int col=get_col(pos);
-	bool col_m=(((unsigned int)pos.y-status_height-col*32)==col);
-	bool res=true;
-	if(row_m == false) {
-		if(col_m) {
-			res&=can_go_left(level, row, col);
-			res&=can_go_left(level, row, col+1);
-			res&=can_go_left(level, row+1, col);
-			res&=can_go_left(level, row+1, col+1);
-		}
-		else {
-			res&=can_go_left(level, row, col);
-			res&=can_go_left(level, row+1, col);
-		}
-	}
-	else {
-		if(col_m) {
-			res&=can_go_left(level, row, col);
-			res&=can_go_left(level, row, col+1);
-		}
-		else {
-			res&=can_go_left(level, row, col);
-		}
-	}
-	return res;
-}
-
-inline bool can_go_right(const vvui_t& level, SDL_Rect pos) {
-	unsigned int row=get_row(pos);
-	bool row_m=(((unsigned int)pos.x-row*32)==row);
-	unsigned int col=get_col(pos);
-	bool col_m=(((unsigned int)pos.y-status_height-col*32)==col);
-	bool res=true;
-	if(row_m == false) {
-		if(col_m) {
-			res&=can_go_right(level, row, col);
-			res&=can_go_right(level, row, col+1);
-			res&=can_go_right(level, row+1, col);
-			res&=can_go_right(level, row+1, col+1);
-		}
-		else {
-			res&=can_go_right(level, row, col);
-			res&=can_go_right(level, row+1, col);
-		}
-	}
-	else {
-		if(col_m) {
-			res&=can_go_right(level, row, col);
-			res&=can_go_right(level, row, col+1);
-		}
-		else {
-			res&=can_go_right(level, row, col);
-		}
-	}
-	return res;
-}
-
-inline bool can_go_up(const vvui_t& level, SDL_Rect pos) {
-	unsigned int row=get_row(pos);
-	bool row_m=(((unsigned int)pos.x-row*32)==row);
-	unsigned int col=get_col(pos);
-	bool col_m=(((unsigned int)pos.y-status_height-col*32)==col);
-	bool res=true;
-	if(row_m == false) {
-		if(col_m) {
-			res&=can_go_up(level, row, col);
-			res&=can_go_up(level, row, col+1);
-			res&=can_go_up(level, row+1, col);
-			res&=can_go_up(level, row+1, col+1);
-		}
-		else {
-			res&=can_go_up(level, row, col);
-			res&=can_go_up(level, row+1, col);
-		}
-	}
-	else {
-		if(col_m) {
-			res&=can_go_up(level, row, col);
-			res&=can_go_up(level, row, col+1);
-		}
-		else {
-			res&=can_go_up(level, row, col);
-		}
-	}
-	return res;
-}
-
-inline bool can_go_down(const vvui_t& level, SDL_Rect pos) {
-	unsigned int row=get_row(pos);
-	bool row_m=(((unsigned int)pos.x-row*32)==row);
-	unsigned int col=get_col(pos);
-	bool col_m=(((unsigned int)pos.y-status_height-col*32)==col);
-	bool res=true;
-	if(row_m == false) {
-		if(col_m) {
-			res&=can_go_down(level, row, col);
-			res&=can_go_down(level, row, col+1);
-			res&=can_go_down(level, row+1, col);
-			res&=can_go_down(level, row+1, col+1);
-		}
-		else {
-			res&=can_go_down(level, row, col);
-			res&=can_go_down(level, row+1, col);
-		}
-	}
-	else {
-		if(col_m) {
-			res&=can_go_down(level, row, col);
-			res&=can_go_down(level, row, col+1);
-		}
-		else {
-			res&=can_go_down(level, row, col);
-		}
-	}
-	return res;
-}
+#include "level.hpp"
+#include "position.hpp"
+#include "collision.hpp"
 
 int main(int argc, char* argv[]) {
 	printf("argc==%d\n", argc);
@@ -300,7 +37,7 @@ int main(int argc, char* argv[]) {
 	
 	//SDL init
 	++error_code;//1
-	if( SDL_Init(SDL_INIT_AUDIO|SDL_INIT_VIDEO) < 0 ) {
+	if( SDL_Init(SDL_INIT_AUDIO|SDL_INIT_VIDEO|SDL_INIT_NOPARACHUTE) < 0 ) {
 		fprintf(stderr, "Unable to init SDL: %s\n", SDL_GetError());
 		exit(error_code);
 	}
@@ -314,7 +51,7 @@ int main(int argc, char* argv[]) {
 	
 	//SDL video
 	SDL_Surface *screen;
-	screen = SDL_SetVideoMode(width, height, 32, SDL_SWSURFACE);
+	screen = SDL_SetVideoMode((int)width, (int)height, 32, SDL_SWSURFACE);
 	++error_code;//3
 	if ( screen == NULL ) {
 		fprintf(stderr, "Unable to set 800x600 video: %s\n", SDL_GetError());
@@ -470,8 +207,8 @@ int main(int argc, char* argv[]) {
 					/*printf("Mouse button %d pressed at (%d,%d)\n",
 						event.button.button, event.button.x, event.button.y);//*/
 					if(
-						(event.motion.x>10 && event.motion.x<210) &&
-						(event.motion.y>10 && event.motion.y<210) &&
+						(event.motion.x>4 && event.motion.x<108) &&
+						(event.motion.y>4 && event.motion.y<48) &&
 						!playing ) {
 							if(Mix_PlayChannel(-1, sample, 0)==-1) {
 								fprintf(stderr, "Mix_PlayChannel: %s\n",Mix_GetError());
@@ -588,18 +325,18 @@ int main(int argc, char* argv[]) {
 		
 		//parse event
 		if(x_diff!=0) {
-			if(x_diff<0 && can_go_left(level, get_row(player_pos), get_col_c(player_pos))) {
+			if(x_diff<0 && can_go_left(level, player_pos)) {
 				player_pos.x=(Sint16)(player_pos.x+x_diff*8);
 			}
-			else if(x_diff>0 && can_go_right(level, get_row(player_pos), get_col_f(player_pos))) {
+			else if(x_diff>0 && can_go_right(level, player_pos)) {
 				player_pos.x=(Sint16)(player_pos.x+x_diff*8);
 			}
 		}
 		if(y_diff!=0) {
-			if(y_diff<0 && can_go_up(level, get_row_c(player_pos), get_col(player_pos))) {
+			if(y_diff<0 && can_go_up(level, player_pos)) {
 				player_pos.y=(Sint16)(player_pos.y+y_diff*8);
 			}
-			else if(y_diff>0 && can_go_down(level, get_row_f(player_pos), get_col(player_pos))) {
+			else if(y_diff>0 && can_go_down(level, player_pos)) {
 				player_pos.y=(Sint16)(player_pos.y+y_diff*8);
 			}
 		}
