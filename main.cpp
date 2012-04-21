@@ -80,14 +80,15 @@ int read_lvl(const char* name, vvui_t* level) {
 #endif
 		for(unsigned int j=0;j<l_width;++j) {
 			nb=0;
-			sscanf(buffer_p, "%hu", &nb);
+			res=sscanf(buffer_p, "%hu", &nb);
 			//assert(nb>0);//should not be 0??
 			assert(nb<=16);
+			assert(res==1);
 			if(nb>0) --nb;//0 to 15, 4bit
 			level->at(i).at(j)=(unsigned)nb;
 			
 			buffer_p+=3;
-			if(nb>=10) ++buffer_p;
+			if(nb>=9) ++buffer_p;
 		}
 	}
 	
@@ -394,12 +395,13 @@ int main(int argc, char* argv[]) {
 	//load level
 	vvui_t level;
 	int res=read_lvl("world_001.lvl", &level);
-	assert(res==0);
-	/*printf("cell(row,col)=value\n");
+	assert(res==1);
+	printf("cell(row,col)=value\n");
 	for(unsigned int i=0;i<level.size();++i) {//height
 		for(unsigned int j=0;j<level.at(0).size();++j) {//width
-			printf("cell(%02u,%02u)=%02d\n", i+1, j+1, level.at(i).at(j));
+			printf("%02d, ", level.at(i).at(j));
 		}
+		printf("\n");
 	}//*/
 	
 	
@@ -589,7 +591,7 @@ int main(int argc, char* argv[]) {
 			if(x_diff<0 && can_go_left(level, get_row(player_pos), get_col_c(player_pos))) {
 				player_pos.x=(Sint16)(player_pos.x+x_diff*8);
 			}
-			if(x_diff>0 && can_go_right(level, get_row(player_pos), get_col_f(player_pos))) {
+			else if(x_diff>0 && can_go_right(level, get_row(player_pos), get_col_f(player_pos))) {
 				player_pos.x=(Sint16)(player_pos.x+x_diff*8);
 			}
 		}
@@ -597,7 +599,7 @@ int main(int argc, char* argv[]) {
 			if(y_diff<0 && can_go_up(level, get_row_c(player_pos), get_col(player_pos))) {
 				player_pos.y=(Sint16)(player_pos.y+y_diff*8);
 			}
-			if(y_diff>0 && can_go_down(level, get_row_f(player_pos), get_col(player_pos))) {
+			else if(y_diff>0 && can_go_down(level, get_row_f(player_pos), get_col(player_pos))) {
 				player_pos.y=(Sint16)(player_pos.y+y_diff*8);
 			}
 		}
