@@ -60,7 +60,7 @@ int read_lvl(const char* filename, vvui_t* level) {
 			fprintf(stderr, "[ERROR] %d - %s\n", errno, my_errors[errno]);
 			return 1;
 		}
-		unsigned int buf_len=strlen(buffer);
+		unsigned int buf_len=(unsigned int)strlen(buffer);
 		assert( (buf_len >= 3*l_width) && (buf_len <= 4*l_width) );
 #endif
 		for(unsigned int j=0;j<l_width;++j) {

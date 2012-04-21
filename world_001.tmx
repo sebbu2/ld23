@@ -6,10 +6,10 @@
  </tileset>
  <layer name="walls" width="12" height="12">
   <data encoding="base64" compression="zlib">
-   eJxtUVsOwCAMMpvz1bnd/7bTBBJC9kGsLRRrS0qpLpSFibjhrvmNdyEDA/VsuW461ppxs3hQe0ociA/0DNM24W6fCxze608vek7kCmZ64E3tFM/D+lF/QjcFFfwq89zy1sf+JqxXgLu1yd5BLevs08XP98X/JM+5/BvfQ5d9D5y3zBui/QD9IASz
+   eJxtUVsOgCAMWwARmOj9byskXdJUPxq20e5ZzexcqAsTdoPP8Y1noQAD/0ViXXTx14RbqIbm27bDTsjpom3E3XUOcML/yxU1J2IVM90LmbSTaibJF/oM3SScNMcA56Jeb9mNSy4Hd2tN+ghtoxqV9j3se69MPfcfbuxG79Dp3gPvRfM6aV8LfwS/
   </data>
  </layer>
- <objectgroup name="objects" width="12" height="12">
+ <objectgroup name="objects" width="12" height="12" visible="0">
   <object name="start" type="Spawn" x="0" y="256" width="32" height="32"/>
   <object name="end" type="Spawn" x="352" y="32" width="32" height="32"/>
   <object x="0" y="288">
