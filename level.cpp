@@ -79,6 +79,6 @@ int read_lvl(const char* filename, vvui_t* level) {
 	
 	//quit
 	fclose(fp);
-	return res;
+	return ((res==1)?0:1);//change value
 }
 //

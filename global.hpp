@@ -8,8 +8,8 @@ using namespace std;
 extern const char *my_errors[];
 
 extern const unsigned int status_height;
-extern const unsigned int width;
-extern const unsigned int height;
+extern unsigned int width;
+extern unsigned int height;
 
 struct event_evt;
 

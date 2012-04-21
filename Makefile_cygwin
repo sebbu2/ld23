@@ -20,8 +20,8 @@ LDFLAGS+=-L/q/SDL/SDL_gfx/lib -lSDL_gfx
 INCLUDES+=-I/q/SDL/SDL_image-1.2.12/include
 LDFLAGS+=-L/q/SDL/SDL_image-1.2.12/lib/x86 -lSDL_image
 #SDL
-INCLUDES+=-I/q/SDL/SDL-1.2.15/include/SDL -D_GNU_SOURCE=1 -Dmain=SDL_main
-LDFLAGS+=-L/q/SDL/SDL-1.2.15/lib -lmingw32 -lSDLmain -lSDL -mwindows
+INCLUDES+=-I/q/SDL/SDL-1.2.15/include/SDL -D_GNU_SOURCE=1
+LDFLAGS+=-L/q/SDL/SDL-1.2.15/lib -lmingw32 -lSDLmain -lSDL
 
 #disable built-in implicit rules
 .SUFFIXES:

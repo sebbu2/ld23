@@ -13,9 +13,6 @@
 #include <SDL_mixer.h>
 
 #include "main.hpp"
-#include "level.hpp"
-#include "position.hpp"
-#include "collision.hpp"
 
 int main(int argc, char* argv[]) {
 	printf("argc==%d\n", argc);
@@ -132,15 +129,30 @@ int main(int argc, char* argv[]) {
 	//load level
 	vvui_t level;
 	int res=read_lvl("world_001.lvl", &level);
-	assert(res==1);
+	assert(res==0);
 	printf("cell(row,col)=value\n");
-	for(unsigned int i=0;i<level.size();++i) {//height
-		for(unsigned int j=0;j<level.at(0).size();++j) {//width
+	for(unsigned int i=0;i<level.size();++i) {//row
+		for(unsigned int j=0;j<level.at(0).size();++j) {//col
 			printf("%02d, ", level.at(i).at(j));
 		}
 		printf("\n");
 	}//*/
 	
+	//load events
+	vvevt_t events;
+	events.resize(level.size());
+	for(unsigned int i=0;i<events.size();++i) {//row
+		events.at(i).resize(events.size());
+	}
+	res=read_evt("world_001.evt", &events);
+	assert(res==0);
+	for(unsigned int i=0;i<events.size();++i) {//row
+		for(unsigned int j=0;j<events.at(0).size();++j) {//col
+			if(strcmp(events.at(i).at(j)->name,"start")==0) {
+				printf("[INFO] start is at (%02d,%02d)\n", ((start_evt*)events.at(i).at(j))->row, ((start_evt*)events.at(i).at(j))->col);
+			}
+		}
+	}
 	
 	//SDL_EnableKeyRepeat(10, 10);
 	SDL_EnableKeyRepeat(40, 20);
@@ -190,6 +202,7 @@ int main(int argc, char* argv[]) {
 	char y_diff_previous=0;
 	x_diff_previous+=0;
 	y_diff_previous+=0;
+	bool in_move=false;
 	while (!quitProgram)
 	{
 		Uint32 ticks = SDL_GetTicks();
@@ -327,17 +340,52 @@ int main(int argc, char* argv[]) {
 		if(x_diff!=0) {
 			if(x_diff<0 && can_go_left(level, player_pos)) {
 				player_pos.x=(Sint16)(player_pos.x+x_diff*8);
+				in_move=true;
 			}
 			else if(x_diff>0 && can_go_right(level, player_pos)) {
 				player_pos.x=(Sint16)(player_pos.x+x_diff*8);
+				in_move=true;
 			}
 		}
 		if(y_diff!=0) {
 			if(y_diff<0 && can_go_up(level, player_pos)) {
 				player_pos.y=(Sint16)(player_pos.y+y_diff*8);
+				in_move=true;
 			}
 			else if(y_diff>0 && can_go_down(level, player_pos)) {
 				player_pos.y=(Sint16)(player_pos.y+y_diff*8);
+				in_move=true;
+			}
+		}
+		
+		//launch map event
+		if(((unsigned int)player_pos.y-status_height)%32==0 && player_pos.x%32==0) {
+			if(in_move) {
+				event_evt* map_event=events.at(get_row(player_pos)).at(get_col(player_pos));
+				if(map_event!=NULL) {
+					in_move=false;
+					if(strcmp(map_event->name,"teleport")==0) {
+						player_pos.x=(Sint16)(((teleport_evt*)map_event)->to_col*32);
+						player_pos.y=(Sint16)(((teleport_evt*)map_event)->to_row*32+status_height);
+					}
+					else if(strcmp(map_event->name,"gameover")==0) {
+						printf("Sorry, you lost, you were trapped and died.\n\nSee you again !\n");
+						quitProgram=true;
+					}
+					else if(strcmp(map_event->name,"start")==0) {
+						//do nothing
+					}
+					else if(strcmp(map_event->name,"finish")==0) {
+						printf("Great, you won !\n\nSee you again !\n");
+						quitProgram=true;
+					}
+					else {
+						fprintf(stderr, "[DEBUG] unknown event '%s' on cell (%02d,%02d)\n", map_event->name, get_row(player_pos), get_col(player_pos));
+					}
+				}
+			}
+			if(x_diff==0 && y_diff==0) {
+				in_move=false;
 			}
 		}
 		

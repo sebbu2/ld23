@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map SYSTEM "http://mapeditor.org/dtd/1.0/map.dtd">
+<map version="1.0" orientation="orthogonal" width="12" height="12" tilewidth="32" tileheight="32">
+ <tileset firstgid="1" name="walls" tilewidth="32" tileheight="32">
+  <image source="walls.png" width="128" height="128"/>
+ </tileset>
+ <layer name="walls" width="12" height="12">
+  <data encoding="base64" compression="zlib">
+   eJxtUVsOwCAMMpvz1bnd/7bTBBJC9kGsLRRrS0qpLpSFibjhrvmNdyEDA/VsuW461ppxs3hQe0ociA/0DNM24W6fCxze608vek7kCmZ64E3tFM/D+lF/QjcFFfwq89zy1sf+JqxXgLu1yd5BLevs08XP98X/JM+5/BvfQ5d9D5y3zBui/QD9IASz
+  </data>
+ </layer>
+ <objectgroup name="objects" width="12" height="12">
+  <object name="start" type="Spawn" x="0" y="256" width="32" height="32"/>
+  <object name="end" type="Spawn" x="352" y="32" width="32" height="32"/>
+  <object x="0" y="288">
+   <polyline points="0,0 96,64"/>
+  </object>
+  <object x="64" y="64">
+   <polyline points="0,0 64,96"/>
+  </object>
+  <object x="224" y="192">
+   <polyline points="0,0 96,-96"/>
+  </object>
+  <object x="224" y="224">
+   <polyline points="0,0 96,32"/>
+  </object>
+  <object x="192" y="352">
+   <polyline points="0,0 32,0"/>
+  </object>
+  <object x="160" y="352">
+   <polyline points="0,0 -32,-96"/>
+  </object>
+  <object x="64" y="256">
+   <polyline points="0,0 96,-32"/>
+  </object>
+  <object x="160" y="160">
+   <polyline points="0,0 0,-160"/>
+  </object>
+ </objectgroup>
+</map>

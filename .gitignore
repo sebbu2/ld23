@@ -1,0 +1,10 @@
+.gitignore
+.*
+*~
+*.bak
+*.dll
+*.o
+*.zip
+*.stackdump
+stdout.txt
+stderr.txt
