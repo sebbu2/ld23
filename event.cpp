@@ -12,6 +12,30 @@ const char* teleport_evt::name="teleport";
 //const char* call_evt::name="call";
 const char* gameover_evt::name="gameover";
 
+const char* event_evt::getName() const {
+	return name;
+}
+
+const char* start_evt::getName() const {
+	return name;
+}
+
+const char* finish_evt::getName() const {
+	return name;
+}
+
+const char* teleport_evt::getName() const {
+	return name;
+}
+
+/*const char* call_evt::getName() const {
+	return name;
+}//*/
+
+const char* gameover_evt::getName() const {
+	return name;
+}
+
 int read_evt(const char* filename, vvevt_t* events) {
 	//declare variables
 	int res=0;

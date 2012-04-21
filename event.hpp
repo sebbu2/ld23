@@ -5,37 +5,43 @@
 
 struct event_evt {
 	static const char* name;
+	virtual const char* getName() const;
 };
 
-struct start_evt: event_evt {
+struct start_evt: public event_evt {
 	static const char* name;
 	unsigned int row;
 	unsigned int col;
+	virtual const char* getName() const;
 };
 
-struct finish_evt: event_evt {
+struct finish_evt: public event_evt {
 	static const char* name;
 	unsigned int row;
 	unsigned int col;
+	virtual const char* getName() const;
 };
 
-struct teleport_evt: event_evt {
+struct teleport_evt: public event_evt {
 	static const char* name;
 	unsigned int row;
 	unsigned int col;
 	unsigned int to_row;
 	unsigned int to_col;
+	virtual const char* getName() const;
 };
 
-/*struct call_evt: event_evt {//later, if time allows it
+/*struct call_evt: public event_evt {//later, if time allows it
 	static const char* name;
 	char* arg;
+	virtual const char* getName() const;
 };//*/
 
-struct gameover_evt: event_evt {
+struct gameover_evt: public event_evt {
 	static const char* name;
 	unsigned int row;
 	unsigned int col;
+	virtual const char* getName() const;
 };
 
 int read_evt(const char* filename, vvevt_t* events);

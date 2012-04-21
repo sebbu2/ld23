@@ -146,9 +146,12 @@ int main(int argc, char* argv[]) {
 	}
 	res=read_evt("world_001.evt", &events);
 	assert(res==0);
+	event_evt* map_event;
 	for(unsigned int i=0;i<events.size();++i) {//row
 		for(unsigned int j=0;j<events.at(0).size();++j) {//col
-			if(strcmp(events.at(i).at(j)->name,"start")==0) {
+			map_event=events.at(i).at(j);
+			if(map_event==NULL) continue;
+			if(strcmp(map_event->getName(),"start")==0) {
 				printf("[INFO] start is at (%02d,%02d)\n", ((start_evt*)events.at(i).at(j))->row, ((start_evt*)events.at(i).at(j))->col);
 			}
 		}
@@ -361,26 +364,26 @@ int main(int argc, char* argv[]) {
 		//launch map event
 		if(((unsigned int)player_pos.y-status_height)%32==0 && player_pos.x%32==0) {
 			if(in_move) {
-				event_evt* map_event=events.at(get_row(player_pos)).at(get_col(player_pos));
+				map_event=events.at(get_row(player_pos)).at(get_col(player_pos));
 				if(map_event!=NULL) {
 					in_move=false;
-					if(strcmp(map_event->name,"teleport")==0) {
+					if(strcmp(map_event->getName(),"teleport")==0) {
 						player_pos.x=(Sint16)(((teleport_evt*)map_event)->to_col*32);
 						player_pos.y=(Sint16)(((teleport_evt*)map_event)->to_row*32+status_height);
 					}
-					else if(strcmp(map_event->name,"gameover")==0) {
+					else if(strcmp(map_event->getName(),"gameover")==0) {
 						printf("Sorry, you lost, you were trapped and died.\n\nSee you again !\n");
 						quitProgram=true;
 					}
-					else if(strcmp(map_event->name,"start")==0) {
+					else if(strcmp(map_event->getName(),"start")==0) {
 						//do nothing
 					}
-					else if(strcmp(map_event->name,"finish")==0) {
+					else if(strcmp(map_event->getName(),"finish")==0) {
 						printf("Great, you won !\n\nSee you again !\n");
 						quitProgram=true;
 					}
 					else {
-						fprintf(stderr, "[DEBUG] unknown event '%s' on cell (%02d,%02d)\n", map_event->name, get_row(player_pos), get_col(player_pos));
+						fprintf(stderr, "[DEBUG] unknown event '%s' on cell (%02d,%02d)\n", map_event->getName(), get_row(player_pos), get_col(player_pos));
 					}
 				}
 			}

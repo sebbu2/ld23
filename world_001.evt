@@ -12,9 +12,10 @@ finish 1 11
 11 7 teleport 11 6
 8 4 teleport 11 5
 11 5 teleport 8 4
-8 2 teleport 5 7
-5 7 teleport 8 2
-5 5 teleport 5 0
-5 0 teleport 5 5
+8 2 teleport 7 5
+7 5 teleport 8 2
+5 5 teleport 0 5
+0 5 teleport 5 5
 0 11 gameover
+7 4 gameover
 end
