@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
 		}
 	}
 	if(difficulty==0||difficulty>3) {
-		difficulty=1;
+		difficulty=3;//default = HARD
 	}
 	my_errors[(int)EAGAIN]="EAGAIN";
 	my_errors[(int)EBADF]="EBADF";
@@ -293,10 +293,10 @@ int main(int argc, char* argv[]) {
 	y_diff_previous+=0;
 	SDL_Surface *text_surface=NULL;
 	bool in_move=true;
-	bool show_menu=false;
+	bool show_menu=true;//default
 	unsigned int cheat=0;
-	unsigned int map_height=level.size();
-	unsigned int map_width=level.at(0).size();
+	unsigned int map_height=(unsigned)level.size();
+	unsigned int map_width=(unsigned)level.at(0).size();
 	printf("[INFO] level is composed of %02d rows of %02d cols\n", map_height, map_width);
 	while (!quitProgram)
 	{
@@ -360,12 +360,16 @@ int main(int argc, char* argv[]) {
 							break;
 						case SDLK_F1:
 							difficulty=1;
+							in_move=true;
 							break;
 						case SDLK_F2:
 							difficulty=2;
+							SDL_FillRect(shadow2, NULL, black);//reset history
+							in_move=true;
 							break;
 						case SDLK_F3:
 							difficulty=3;
+							in_move=true;
 							break;
 						case SDLK_F10:
 							show_menu^=true;
@@ -383,6 +387,7 @@ int main(int argc, char* argv[]) {
 							else cheat&=0xE0;
 							break;
 						case SDLK_q://qwerty ??
+						case SDLK_a://qwerty ??
 							if((cheat&0x1F)==0x07) cheat=((cheat&0xC0)|(cheat&0x3F)|0x08);
 							else cheat&=0xE0;
 							break;
@@ -486,6 +491,24 @@ int main(int argc, char* argv[]) {
 			pos.y=12;
 			SDL_BlitSurface(text_surface,NULL,screen,&pos);
 			SDL_FreeSurface(text_surface);
+		}
+		if(difficulty==1) text_surface = TTF_RenderText_Blended(font, "[easy]", _blue);
+		else if(difficulty==2) text_surface = TTF_RenderText_Blended(font, "[medium]", _blue);
+		else if(difficulty==3) text_surface = TTF_RenderText_Blended(font, "[hard]", _blue);
+		if(text_surface!=NULL) {
+			SDL_Rect pos;
+			pos.x=120;
+			pos.y=4;
+			SDL_BlitSurface(text_surface,NULL,screen,&pos);
+		}
+		if((cheat&0x20)==0x20) {
+			text_surface = TTF_RenderText_Blended(font, "[cheat]", _blue);
+			if(text_surface!=NULL) {
+				SDL_Rect pos;
+				pos.x=120;
+				pos.y=17;
+				SDL_BlitSurface(text_surface,NULL,screen,&pos);
+			}
 		}
 		
 		//draw events (if cheat)
@@ -698,33 +721,47 @@ int main(int argc, char* argv[]) {
 			rect.x=96;
 			rect.y=160;
 			rect.w=192;
-			rect.h=96;
+			rect.h=104;
 			
 			//SDL_FillRect(screen, &rect, brown);//no alpha support
 			//rectangleColor(screen, rect.x, rect.y, (Sint16)(rect.x+rect.w), (Sint16)(rect.y+rect.h), brown<<8|0xCC);
 			//rectangleRGBA(screen, rect.x, rect.y, (Sint16)(rect.x+rect.w), (Sint16)(rect.y+rect.h), _brown.r, _brown.g, _brown.b, 0xCC);
 			boxColor(screen, rect.x, rect.y, (Sint16)(rect.x+rect.w), (Sint16)(rect.y+rect.h), brown<<8|0xCC);
 			//boxRGBA(screen, rect.x, rect.y, (Sint16)(rect.x+rect.w), (Sint16)(rect.y+rect.h), _brown.r, _brown.g, _brown.b, 0xCC);
+			
+			rect.x=(Sint16)(rect.x+16);//once
+			text_surface = TTF_RenderText_Blended(font, "MENU (F10)", _white);
+			if(text_surface!=NULL) {
+				rect.x=(Sint16)(rect.x+40);
+				rect.y=(Sint16)(rect.y+10);
+				SDL_BlitSurface(text_surface,NULL,screen,&rect);
+				SDL_FreeSurface(text_surface);
+				rect.x=(Sint16)(rect.x-40);
+			}
 			text_surface = TTF_RenderText_Blended(font, "Change Difficulty level", _white);
 			if(text_surface!=NULL) {
-				rect.x=(Sint16)(rect.x+16);
-				rect.y=(Sint16)(rect.y+10);
+				rect.y=(Sint16)(rect.y+15);
 				SDL_BlitSurface(text_surface,NULL,screen,&rect);
 				SDL_FreeSurface(text_surface);
 			}
 			text_surface = TTF_RenderText_Blended(font, "F1 - easy", _white);
 			if(text_surface!=NULL) {
-				rect.y=(Sint16)(rect.y+20);
+				rect.y=(Sint16)(rect.y+15);
 				SDL_BlitSurface(text_surface,NULL,screen,&rect);
 			}
 			text_surface = TTF_RenderText_Blended(font, "F2 - medium", _white);
 			if(text_surface!=NULL) {
-				rect.y=(Sint16)(rect.y+20);
+				rect.y=(Sint16)(rect.y+15);
 				SDL_BlitSurface(text_surface,NULL,screen,&rect);
 			}
 			text_surface = TTF_RenderText_Blended(font, "F3 - hard", _white);
 			if(text_surface!=NULL) {
-				rect.y=(Sint16)(rect.y+20);
+				rect.y=(Sint16)(rect.y+15);
+				SDL_BlitSurface(text_surface,NULL,screen,&rect);
+			}
+			text_surface = TTF_RenderText_Blended(font, "????? - easter egg", _white);
+			if(text_surface!=NULL) {
+				rect.y=(Sint16)(rect.y+15);
 				SDL_BlitSurface(text_surface,NULL,screen,&rect);
 			}
 		}

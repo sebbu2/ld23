@@ -13,32 +13,32 @@ UD	UDL	UDR	UDLR
 */
 
 bool can_go_left(const vvui_t& level, unsigned int row, unsigned int col) {
-	if(row>level.size()) return false;
-	if(col>level.at(0).size()) return false;
+	if(row>=level.size()) return false;
+	if(col>=level.at(0).size()) return false;
 	unsigned int src=get_collision(level, row, col);
 	if(col==0) return false;
 	unsigned int dst=get_collision(level, row, col-1);
 	return (((src%2)==0)&&((dst%4)<2));
 }
 bool can_go_right(const vvui_t& level, unsigned int row, unsigned int col) {
-	if(row>level.size()) return false;
-	if(col>level.at(0).size()) return false;
+	if(row>=level.size()) return false;
+	if(col>=level.at(0).size()) return false;
 	unsigned int src=get_collision(level, row, col);
 	if((col+1)>=level.at(0).size()) return false;
 	unsigned int dst=get_collision(level, row, col+1);
 	return (((src%4)<2)&&((dst%2)==0));
 }
 bool can_go_up(const vvui_t& level, unsigned int row, unsigned int col) {
-	if(row>level.size()) return false;
-	if(col>level.at(0).size()) return false;
+	if(row>=level.size()) return false;
+	if(col>=level.at(0).size()) return false;
 	unsigned int src=get_collision(level, row, col);
 	if(row==0) return false;
 	unsigned int dst=get_collision(level, row-1, col);
 	return ((((src/4)%2)==0)&&((dst/8)==0));
 }
 bool can_go_down(const vvui_t& level, unsigned int row, unsigned int col) {
-	if(row>level.size()) return false;
-	if(col>level.at(0).size()) return false;
+	if(row>=level.size()) return false;
+	if(col>=level.at(0).size()) return false;
 	unsigned int src=get_collision(level, row, col);
 	if((row+1)>=level.size()) return false;
 	unsigned int dst=get_collision(level, row+1, col);
