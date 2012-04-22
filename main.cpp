@@ -14,6 +14,15 @@
 
 #include "main.hpp"
 
+SDL_Color get_color(Uint32 color) {
+	SDL_Color res;
+	res.r=(color>>16)&0xFF;
+	res.g=(color>>8)&0xFF;
+	res.b=color&0xFF;
+	res.unused=0;
+	return res;
+}
+
 int main(int argc, char* argv[]) {
 	printf("argc==%d\n", argc);
 	if(argc>=2) {
@@ -56,17 +65,29 @@ int main(int argc, char* argv[]) {
 	}
 	
 	//colors
-	Uint32 black=SDL_MapRGB(screen->format,0,0,0);
-	printf("black A : %u %u %u %u\n", black>>24, (black>>16)&0xFF, (black>>8)&0xFF, black&0xFF);
-	Uint32 white=SDL_MapRGB(screen->format,255,255,255);
-	printf("white A : %u %u %u %u\n", white>>24, (white>>16)&0xFF, (white>>8)&0xFF, white&0xFF);
-	Uint32 st_blue=SDL_MapRGBA(screen->format,96,128,255,SDL_ALPHA_TRANSPARENT);
-	printf("st_blue A : %u %u %u %u\n", st_blue>>24, (st_blue>>16)&0xFF, (st_blue>>8)&0xFF, st_blue&0xFF);
-	Uint32 st_blue2=SDL_MapRGBA(screen->format,160,192,255,SDL_ALPHA_TRANSPARENT);
-	printf("st_blue2 A : %u %u %u %u\n", st_blue2>>24, (st_blue2>>16)&0xFF, (st_blue2>>8)&0xFF, st_blue2&0xFF);
-	Uint32 transparent=SDL_MapRGBA(screen->format, 255, 255, 255, SDL_ALPHA_TRANSPARENT);
+	Uint32 black		=SDL_MapRGBA(screen->format,	0	,	0	,	0	,	SDL_ALPHA_TRANSPARENT);
+	Uint32 white		=SDL_MapRGBA(screen->format,	255	,	255	,	255	,	SDL_ALPHA_TRANSPARENT);
+	Uint32 st_blue		=SDL_MapRGBA(screen->format,	96	,	128	,	255	,	SDL_ALPHA_TRANSPARENT);
+	Uint32 st_blue2		=SDL_MapRGBA(screen->format,	160	,	192	,	255	,	SDL_ALPHA_TRANSPARENT);
+	Uint32 red			=SDL_MapRGBA(screen->format,	255	,	0	,	0	,	SDL_ALPHA_TRANSPARENT);
+	Uint32 green		=SDL_MapRGBA(screen->format,	0	,	255	,	0	,	SDL_ALPHA_TRANSPARENT);
+	Uint32 blue			=SDL_MapRGBA(screen->format,	0	,	0	,	255	,	SDL_ALPHA_TRANSPARENT);
+	Uint32 yellow		=SDL_MapRGBA(screen->format,	255	,	255	,	0	,	SDL_ALPHA_TRANSPARENT);
+	Uint32 transparent	=SDL_MapRGBA(screen->format,	255	,	255	,	255	,	255);
 	printf("transparent A : %u %u %u %u\n", transparent>>24, (transparent>>16)&0xFF, (transparent>>8)&0xFF, transparent&0xFF);
-	SDL_SetColorKey(screen,SDL_SRCCOLORKEY,transparent);
+	SDL_SetColorKey(screen, SDL_SRCCOLORKEY, transparent);
+	assert( (black&0xFF000000)==0 && (white&0xFF000000)==0 && (st_blue&0xFF000000)==0 && (st_blue2&0xFF000000)==0 );
+	assert( (red&0xFF000000)==0 && (green&0xFF000000)==0 && (blue&0xFF000000)==0 && (yellow&0xFF000000)==0 );
+	SDL_Color _black=get_color(black);
+	SDL_Color _white=get_color(white);
+	SDL_Color _st_blue=get_color(st_blue);
+	SDL_Color _st_blue2=get_color(st_blue2);
+	SDL_Color _red=get_color(red);
+	SDL_Color _green=get_color(green);
+	SDL_Color _blue=get_color(blue);
+	SDL_Color _yellow=get_color(yellow);
+	assert( _black.unused==0 && _white.unused==0 && _st_blue.unused==0 && _st_blue2.unused==0 );
+	assert( _red.unused==0 && _green.unused==0 && _blue.unused==0 && _yellow.unused==0 );
 	
 	//images
 	SDL_Surface *fond=IMG_Load("world_001.png");
@@ -206,6 +227,7 @@ int main(int argc, char* argv[]) {
 	x_diff_previous+=0;
 	y_diff_previous+=0;
 	bool in_move=false;
+	unsigned int cheat=0;
 	while (!quitProgram)
 	{
 		Uint32 ticks = SDL_GetTicks();
@@ -263,6 +285,27 @@ int main(int argc, char* argv[]) {
 							if(y_diff_previous<0) y_diff_previous=y_diff;
 							y_diff= 1;
 							x_diff= 0;x_diff_previous=0;
+							break;
+						case SDLK_c:
+							if((cheat&0x1F)==0x00) cheat=((cheat&0xC0)|(cheat&0x3F)|0x01);
+							else cheat&=0xE0;
+							break;
+						case SDLK_h:
+							if((cheat&0x1F)==0x01) cheat=((cheat&0xC0)|(cheat&0x3F)|0x02);
+							else cheat&=0xE0;
+							break;
+						case SDLK_e:
+							if((cheat&0x1F)==0x03) cheat=((cheat&0xC0)|(cheat&0x3F)|0x04);
+							else cheat&=0xE0;
+							break;
+						case SDLK_q://qwerty ??
+							if((cheat&0x1F)==0x07) cheat=((cheat&0xC0)|(cheat&0x3F)|0x08);
+							else cheat&=0xE0;
+							break;
+						case SDLK_t:
+							if((cheat&0x1F)==0x0F) cheat=((cheat&0xC0)|(cheat&0x3F)|0x10);
+							else cheat&=0xE0;
+							if((cheat&0x1F)==0x1F) cheat=((cheat&0xE0)^0x20);
 							break;
 						default:
 							break;
@@ -406,7 +449,6 @@ int main(int argc, char* argv[]) {
 		roundedBoxColor(screen, 6, 6, 106, 26, 4, st_blue2);
 		
 		//draw text
-		SDL_Color _green={0,255,0,0};
 		SDL_Surface *text_surface = TTF_RenderText_Blended(font, "HP: 100/100", _green);
 		if(text_surface!=NULL) {
 			SDL_Rect pos;
@@ -414,6 +456,31 @@ int main(int argc, char* argv[]) {
 			pos.y=12;
 			SDL_BlitSurface(text_surface,NULL,screen,&pos);
 			SDL_FreeSurface(text_surface);
+		}
+		
+		if((cheat&0x20)==0x20) {
+			for(unsigned int i=0;i<events.size();++i) {//row
+				for(unsigned int j=0;j<events.at(0).size();++j) {//col
+					map_event=events.at(i).at(j);
+					if(map_event==NULL) continue;
+					short int x=(short)(j*32+2);
+					short int y=(short)(i*32+status_height+2);
+					short int w=(short)(32-4);
+					short int h=(short)(32-4);
+					if(strcmp(map_event->getName(),"start")==0) {
+						roundedBoxColor(screen, x, y, (short)(x+w), (short)(y+h), 4, yellow<<8|0xFF);
+					}
+					else if(strcmp(map_event->getName(),"finish")==0) {
+						roundedBoxColor(screen, x, y, (short)(x+w), (short)(y+h), 4, green<<8|0xFF);
+					}
+					else if(strcmp(map_event->getName(),"gameover")==0) {
+						roundedBoxColor(screen, x, y, (short)(x+w), (short)(y+h), 4, red<<8|0xFF);
+					}
+					else if(strcmp(map_event->getName(),"teleport")==0) {
+						roundedBoxColor(screen, x, y, (short)(x+w), (short)(y+h), 4, blue<<8|0xFF);
+					}
+				}
+			}
 		}
 		
 		//draw image
