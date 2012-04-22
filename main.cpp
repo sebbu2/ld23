@@ -90,6 +90,7 @@ int main(int argc, char* argv[]) {
 	assert( _red.unused==0 && _green.unused==0 && _blue.unused==0 && _yellow.unused==0 );
 	
 	//images
+	//level
 	SDL_Surface *fond=IMG_Load("world_001.png");
 	SDL_Rect fond_pos={0,32,384,384};
 	++error_code;//4
@@ -97,6 +98,7 @@ int main(int argc, char* argv[]) {
 		fprintf(stderr, "IMG_Load: %s\n", IMG_GetError());
 		exit(error_code);
 	}
+	//player
 	SDL_Surface *player=IMG_Load("player2.png");
 	SDL_Rect player_pos={0,256,0,0};
 	player_pos.x=(Sint16)(player_pos.x+fond_pos.x);
@@ -106,6 +108,14 @@ int main(int argc, char* argv[]) {
 		exit(error_code);
 	}
 	SDL_SetColorKey( player, SDL_SRCCOLORKEY, SDL_MapRGB(player->format, 255, 255, 255) );
+	//shadow
+	SDL_Surface *shadow=IMG_Load("mask.png");
+	SDL_Rect shadow_pos={0,0,0,0};
+	if(shadow==NULL) {
+		fprintf(stderr, "IMG_Load: %s\n", IMG_GetError());
+		exit(error_code);
+	}
+	SDL_SetColorKey( shadow, SDL_SRCCOLORKEY, SDL_MapRGB(shadow->format, 255, 255, 255) );
 	
 	//font
 	TTF_Font *font;
@@ -228,6 +238,9 @@ int main(int argc, char* argv[]) {
 	y_diff_previous+=0;
 	bool in_move=false;
 	unsigned int cheat=0;
+	unsigned int map_height=level.size();
+	unsigned int map_width=level.at(0).size();
+	printf("[INFO] level is composed of %02d rows of %02d cols\n", map_height, map_width);
 	while (!quitProgram)
 	{
 		Uint32 ticks = SDL_GetTicks();
@@ -458,6 +471,7 @@ int main(int argc, char* argv[]) {
 			SDL_FreeSurface(text_surface);
 		}
 		
+		//draw events (if cheat)
 		if((cheat&0x20)==0x20) {
 			for(unsigned int i=0;i<events.size();++i) {//row
 				for(unsigned int j=0;j<events.at(0).size();++j) {//col
@@ -491,6 +505,98 @@ int main(int argc, char* argv[]) {
 			pos_spr.w=32;
 			pos_spr.h=32;*/
 			SDL_BlitSurface(player,NULL,screen,&player_pos);
+		}
+		
+		//draw shadow
+		{
+			shadow_pos.x=(short)(player_pos.x-32);
+			shadow_pos.y=(short)(player_pos.y-32);
+			if(shadow_pos.y<(short)status_height) {
+				SDL_Rect pos_spr;
+				pos_spr.x=0;
+				pos_spr.y=shadow_pos.y;
+				pos_spr.w=96;
+				pos_spr.h=(unsigned short)(96-shadow_pos.y);
+				shadow_pos.y=(short)(shadow_pos.y+pos_spr.y);
+				SDL_BlitSurface(shadow,&pos_spr,screen,&shadow_pos);
+				shadow_pos.y=(short)(shadow_pos.y-pos_spr.y);
+			}
+			else {
+				SDL_BlitSurface(shadow,NULL,screen,&shadow_pos);
+			}
+			SDL_Rect rect;
+			
+#define cond_width()	rect.w>0
+#define cond_height()	rect.h>0
+#define cond_left()		(unsigned)player_pos.x>32
+#define cond_right()	map_width*32>(unsigned)player_pos.x
+#define cond_up()		(unsigned)player_pos.y>status_height
+#define cond_down()		map_height*32>(unsigned)player_pos.y
+			//left
+			rect.x=0;
+			rect.y=(short)(player_pos.y);
+			rect.w=(unsigned short)(player_pos.x-32);
+			rect.h=32;
+			if(rect.w>0 && rect.h>0 && (unsigned)player_pos.x>32) {
+				SDL_FillRect(screen, &rect, black);
+			}
+			//up
+			rect.x=(short)(player_pos.x);
+			rect.y=(short)(status_height);
+			rect.w=32;
+			rect.h=(unsigned short)((unsigned)player_pos.y-status_height);
+			if(rect.w>0 && rect.h>0 && (unsigned)player_pos.y>status_height) {
+				SDL_FillRect(screen, &rect, black);
+			}
+			//right
+			rect.x=(short)(player_pos.x+64);
+			rect.y=(short)(player_pos.y);
+			rect.w=(unsigned short)(map_width*32-(unsigned)player_pos.x);
+			rect.h=32;
+			if(rect.w>0 && rect.h>0 && map_width*32>(unsigned)player_pos.x) {
+				SDL_FillRect(screen, &rect, black);
+			}
+			//down
+			rect.x=(short)(player_pos.x);
+			rect.y=(short)(player_pos.y+64);
+			rect.w=32;
+			rect.h=(unsigned short)(map_height*32-(unsigned)player_pos.y);
+			if(rect.w>0 && rect.h>0 && map_height*32>(unsigned)player_pos.y) {
+				SDL_FillRect(screen, &rect, black);
+			}
+			
+			//up left
+			rect.x=0;
+			rect.y=(short)(status_height);
+			rect.w=(unsigned short)(player_pos.x);
+			rect.h=(unsigned short)((unsigned)player_pos.y-status_height);
+			if(rect.w>0 && rect.h>0 && ((unsigned)player_pos.x>32 || (unsigned)player_pos.y>status_height) ) {
+				SDL_FillRect(screen, &rect, black);
+			}
+			//up right
+			rect.x=(short)(player_pos.x+32);
+			rect.y=(short)(status_height);
+			rect.w=(unsigned short)(map_width*32-(unsigned)player_pos.x);
+			rect.h=(unsigned short)((unsigned)player_pos.y-status_height);
+			if(rect.w>0 && rect.h>0 && (map_width*32>(unsigned)player_pos.x || (unsigned)player_pos.y>status_height) ) {
+				SDL_FillRect(screen, &rect, black);
+			}
+			//down left
+			rect.x=0;
+			rect.y=(short)(player_pos.y+32);
+			rect.w=(unsigned short)(player_pos.x);
+			rect.h=(unsigned short)(map_height*32-(unsigned)player_pos.y);
+			if(rect.w>0 && rect.h>0 && (map_height*32>(unsigned)player_pos.y || (unsigned)player_pos.x>32) ) {
+				SDL_FillRect(screen, &rect, black);
+			}
+			//down right
+			rect.x=(short)(player_pos.x+32);
+			rect.y=(short)(player_pos.y+32);
+			rect.w=(unsigned short)(map_width*32-(unsigned)player_pos.x);
+			rect.h=(unsigned short)(map_height*32-(unsigned)player_pos.y);
+			if(rect.w>0 && rect.h>0 && (map_height*32>(unsigned)player_pos.y || map_width*32>(unsigned)player_pos.x) ) {
+				SDL_FillRect(screen, &rect, black);
+			}
 		}
 		
 		/* swap buffers */
