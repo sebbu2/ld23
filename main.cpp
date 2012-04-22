@@ -78,51 +78,60 @@ int main(int argc, char* argv[]) {
 	}
 	atexit(SDL_Quit);
 	
-	++error_code;//2
-	if(TTF_Init()==-1) {
-		fprintf(stderr, "TTF_Init: %s\n", TTF_GetError());
-		exit(error_code);
-	}
-	
 	//SDL video
 	SDL_Surface *screen;
-	screen = SDL_SetVideoMode((int)width, (int)height, 32, SDL_SWSURFACE);
-	++error_code;//3
+	//screen = SDL_SetVideoMode((int)width, (int)height, 32, SDL_SWSURFACE);
+	screen = SDL_SetVideoMode((int)width, (int)height, 32, SDL_HWSURFACE|SDL_DOUBLEBUF);
+	++error_code;//2
 	if ( screen == NULL ) {
 		fprintf(stderr, "Unable to set 800x600 video: %s\n", SDL_GetError());
 		exit(error_code);
 	}
 	
+	SDL_SetAlpha(screen, SDL_SRCALPHA|SDL_RLEACCEL, 255);
+	SDL_SetAlpha(screen, SDL_SRCALPHA|SDL_RLEACCEL, SDL_ALPHA_OPAQUE);
+	SDL_PixelFormat *fmt=screen->format;
+	assert(fmt->BitsPerPixel==32);
+	assert(fmt->BytesPerPixel==4);
+	
 	//colors
-	Uint32 black		=SDL_MapRGBA(screen->format,	0	,	0	,	0	,	SDL_ALPHA_TRANSPARENT);
-	Uint32 white		=SDL_MapRGBA(screen->format,	255	,	255	,	255	,	SDL_ALPHA_TRANSPARENT);
-	Uint32 st_blue		=SDL_MapRGBA(screen->format,	96	,	128	,	255	,	SDL_ALPHA_TRANSPARENT);
-	Uint32 st_blue2		=SDL_MapRGBA(screen->format,	160	,	192	,	255	,	SDL_ALPHA_TRANSPARENT);
-	Uint32 red			=SDL_MapRGBA(screen->format,	255	,	0	,	0	,	SDL_ALPHA_TRANSPARENT);
-	Uint32 green		=SDL_MapRGBA(screen->format,	0	,	255	,	0	,	SDL_ALPHA_TRANSPARENT);
-	Uint32 blue			=SDL_MapRGBA(screen->format,	0	,	0	,	255	,	SDL_ALPHA_TRANSPARENT);
-	Uint32 yellow		=SDL_MapRGBA(screen->format,	255	,	255	,	0	,	SDL_ALPHA_TRANSPARENT);
-	Uint32 transparent	=SDL_MapRGBA(screen->format,	255	,	255	,	255	,	255);
-	printf("transparent A : %u %u %u %u\n", transparent>>24, (transparent>>16)&0xFF, (transparent>>8)&0xFF, transparent&0xFF);
+	Uint32 transparent	=SDL_MapRGBA(screen->format,	255	,	255	,	255	,	SDL_ALPHA_TRANSPARENT);
+	//SDL_SetColorKey( screen, SDL_SRCCOLORKEY, SDL_MapRGB(screen->format, 255, 255, 255) );
 	SDL_SetColorKey(screen, SDL_SRCCOLORKEY, transparent);
+	Uint32 black		=SDL_MapRGBA(screen->format,	0	,	0	,	0	,	SDL_ALPHA_OPAQUE);
+	Uint32 white		=SDL_MapRGBA(screen->format,	255	,	255	,	255	,	SDL_ALPHA_OPAQUE);
+	Uint32 st_blue		=SDL_MapRGBA(screen->format,	96	,	128	,	255	,	SDL_ALPHA_OPAQUE);
+	Uint32 st_blue2		=SDL_MapRGBA(screen->format,	160	,	192	,	255	,	SDL_ALPHA_OPAQUE);
+	Uint32 red			=SDL_MapRGBA(screen->format,	255	,	0	,	0	,	SDL_ALPHA_OPAQUE);
+	Uint32 green		=SDL_MapRGBA(screen->format,	0	,	255	,	0	,	SDL_ALPHA_OPAQUE);
+	Uint32 green2		=SDL_MapRGBA(screen->format,	0	,	128,	0	,	SDL_ALPHA_OPAQUE);
+	Uint32 blue			=SDL_MapRGBA(screen->format,	0	,	0	,	255	,	SDL_ALPHA_OPAQUE);
+	Uint32 yellow		=SDL_MapRGBA(screen->format,	255	,	255	,	0	,	SDL_ALPHA_OPAQUE);
+	Uint32 brown		=SDL_MapRGBA(screen->format,	102	,	51	,	0	,	64);//faible ?
+	printf("st_blue A : %u %u %u %u\n", st_blue>>24, (st_blue>>16)&0xFF, (st_blue>>8)&0xFF, st_blue&0xFF);
+	printf("transparent A : %u %u %u %u\n", transparent>>24, (transparent>>16)&0xFF, (transparent>>8)&0xFF, transparent&0xFF);
+	printf("brown A : %u %u %u %u\n", brown>>24, (brown>>16)&0xFF, (brown>>8)&0xFF, brown&0xFF);
+	//SDL_SetColorKey(screen, SDL_SRCCOLORKEY, transparent);
 	assert( (black&0xFF000000)==0 && (white&0xFF000000)==0 && (st_blue&0xFF000000)==0 && (st_blue2&0xFF000000)==0 );
-	assert( (red&0xFF000000)==0 && (green&0xFF000000)==0 && (blue&0xFF000000)==0 && (yellow&0xFF000000)==0 );
+	assert( (red&0xFF000000)==0 && (green&0xFF000000)==0 && (green2&0xFF000000)==0 && (blue&0xFF000000)==0 && (yellow&0xFF000000)==0 && (brown&0xFF000000)==0 );
 	SDL_Color _black=get_color(black);
 	SDL_Color _white=get_color(white);
 	SDL_Color _st_blue=get_color(st_blue);
 	SDL_Color _st_blue2=get_color(st_blue2);
 	SDL_Color _red=get_color(red);
 	SDL_Color _green=get_color(green);
+	SDL_Color _green2=get_color(green2);
 	SDL_Color _blue=get_color(blue);
 	SDL_Color _yellow=get_color(yellow);
+	SDL_Color _brown=get_color(brown);
 	assert( _black.unused==0 && _white.unused==0 && _st_blue.unused==0 && _st_blue2.unused==0 );
-	assert( _red.unused==0 && _green.unused==0 && _blue.unused==0 && _yellow.unused==0 );
+	assert( _red.unused==0 && _green.unused==0 && _green2.unused==0 && _blue.unused==0 && _yellow.unused==0 && _brown.unused==0 );
 	
 	//images
 	//level
 	SDL_Surface *fond=IMG_Load("world_001.png");
 	SDL_Rect fond_pos={0,32,384,384};
-	++error_code;//4
+	++error_code;//3
 	if(fond==NULL) {
 		fprintf(stderr, "IMG_Load: %s\n", IMG_GetError());
 		exit(error_code);
@@ -137,22 +146,33 @@ int main(int argc, char* argv[]) {
 		exit(error_code);
 	}
 	SDL_SetColorKey( player, SDL_SRCCOLORKEY, SDL_MapRGB(player->format, 255, 255, 255) );
+	//SDL_SetColorKey( player, SDL_SRCCOLORKEY, transparent );
 	//shadow
 	SDL_Surface *shadow=NULL;
 	SDL_Rect shadow_pos={0,0,0,0};
-	if(difficulty==3) {
+	//if(difficulty==3) {
 		shadow=IMG_Load("mask.png");
 		if(shadow==NULL) {
 			fprintf(stderr, "IMG_Load: %s\n", IMG_GetError());
 			exit(error_code);
 		}
-		SDL_SetColorKey( shadow, SDL_SRCCOLORKEY, SDL_MapRGB(shadow->format, 255, 255, 255) );
-	}
-	if(difficulty==2) {
-		shadow=SDL_CreateRGBSurface(SDL_SWSURFACE, (int)width, (int)height, 32, 0, 0, 0, 0);
-		SDL_SetColorKey( shadow, SDL_SRCCOLORKEY, SDL_MapRGB(shadow->format, 255, 255, 255) );
-		SDL_FillRect(shadow, NULL, black);
-		shadow_pos.y=(Sint16)status_height;
+		//SDL_SetColorKey( shadow, SDL_SRCCOLORKEY, SDL_MapRGB(shadow->format, 255, 255, 255) );
+		SDL_SetColorKey( shadow, SDL_SRCCOLORKEY, transparent);
+	//}
+	SDL_Surface *shadow2=NULL;
+	SDL_Rect shadow_pos2={0,0,0,0};
+	//if(difficulty==2) {
+		shadow2=SDL_CreateRGBSurface(SDL_SWSURFACE, (int)width, (int)height, 32, 0, 0, 0, 255);
+		//SDL_SetColorKey( shadow2, SDL_SRCCOLORKEY, SDL_MapRGB(shadow->format, 255, 255, 255) );
+		SDL_SetColorKey( shadow2, SDL_SRCCOLORKEY, transparent );
+		SDL_FillRect(shadow2, NULL, black);
+		shadow_pos2.y=(Sint16)status_height;
+	//}
+
+	++error_code;//4
+	if(TTF_Init()==-1) {
+		fprintf(stderr, "TTF_Init: %s\n", TTF_GetError());
+		exit(error_code);
 	}
 	
 	//font
@@ -224,6 +244,8 @@ int main(int argc, char* argv[]) {
 			if(map_event==NULL) continue;
 			if(strcmp(map_event->getName(),"start")==0) {
 				printf("[INFO] start is at (%02d,%02d)\n", ((start_evt*)events.at(i).at(j))->row, ((start_evt*)events.at(i).at(j))->col);
+				player_pos.y=(Sint16)(((start_evt*)events.at(i).at(j))->row*32+status_height);
+				player_pos.x=(Sint16)(((start_evt*)events.at(i).at(j))->col*32);
 			}
 		}
 	}
@@ -243,13 +265,6 @@ int main(int argc, char* argv[]) {
 #if 1
 	bool playing=false;//music
 	SDL_Event event;
-#endif
-#if 0
-	Uint8 *state=NULL;
-	int key_count=0;
-	state = SDL_GetKeyState(&key_count);
-	printf("[INFO] key count = %d\n", key_count);
-	assert(key_count==SDLK_LAST);
 #endif
 	// duration of main loop
 	Uint32 duration = 40;
@@ -276,7 +291,9 @@ int main(int argc, char* argv[]) {
 	char y_diff_previous=0;
 	x_diff_previous+=0;
 	y_diff_previous+=0;
+	SDL_Surface *text_surface=NULL;
 	bool in_move=true;
+	bool show_menu=false;
 	unsigned int cheat=0;
 	unsigned int map_height=level.size();
 	unsigned int map_width=level.at(0).size();
@@ -340,6 +357,18 @@ int main(int argc, char* argv[]) {
 							if(y_diff_previous<0) y_diff_previous=y_diff;
 							y_diff= 1;
 							x_diff= 0;x_diff_previous=0;
+							break;
+						case SDLK_F1:
+							difficulty=1;
+							break;
+						case SDLK_F2:
+							difficulty=2;
+							break;
+						case SDLK_F3:
+							difficulty=3;
+							break;
+						case SDLK_F10:
+							show_menu^=true;
 							break;
 						case SDLK_c:
 							if((cheat&0x1F)==0x00) cheat=((cheat&0xC0)|(cheat&0x3F)|0x01);
@@ -406,36 +435,6 @@ int main(int argc, char* argv[]) {
 			}
 		}//end events
 #endif
-
-#if 0
-		//events (bis)
-		SDL_PumpEvents();
-		if( state[SDLK_ESCAPE]!=0 ) {
-			quitProgram=true;
-		}
-		if( (state[SDLK_LEFT]==0) ^ (state[SDLK_RIGHT]==0) ) {
-			if( state[SDLK_LEFT]==1 ) {
-				x_diff=-1;
-			}
-			if( state[SDLK_RIGHT]==1 ) {
-				x_diff= 1;
-			}
-		}
-		else {
-			x_diff= 0;
-		}
-		if( (state[SDLK_UP]==0) ^ (state[SDLK_DOWN]==0) ) {
-			if( state[SDLK_UP]==1 ) {
-				y_diff=-1;
-			}
-			if( state[SDLK_DOWN]==1 ) {
-				y_diff= 1;
-			}
-		}
-		else {
-			y_diff= 0;
-		}
-#endif
 		
 		//parse event
 		if(x_diff!=0) {
@@ -474,11 +473,13 @@ int main(int argc, char* argv[]) {
 		SDL_BlitSurface(fond,NULL,screen,&fond_pos);
 		
 		//draw rounded box
-		roundedBoxColor(screen, 4, 4, 108, 28, 4, st_blue);
-		roundedBoxColor(screen, 6, 6, 106, 26, 4, st_blue2);
+		//roundedBoxColor(screen, 4, 4, 108, 28, 4, st_blue);
+		roundedBoxColor(screen, 4, 4, 108, 28, 4, st_blue<<8|0xFF);
+		//roundedBoxColor(screen, 6, 6, 106, 26, 4, st_blue2);
+		roundedBoxColor(screen, 6, 6, 106, 26, 4, st_blue2<<8|0xFF);
 		
 		//draw text
-		SDL_Surface *text_surface = TTF_RenderText_Blended(font, "HP: 100/100", _green);
+		text_surface = TTF_RenderText_Blended(font, "HP: 100/100", _green2);
 		if(text_surface!=NULL) {
 			SDL_Rect pos;
 			pos.x=12;
@@ -513,7 +514,7 @@ int main(int argc, char* argv[]) {
 			}
 		}
 		
-		//draw image
+		//draw player
 		{
 			/*SDL_Rect pos_spr;
 			pos_spr.x=0;
@@ -561,10 +562,6 @@ int main(int argc, char* argv[]) {
 #define cond_width()	rect.w>0
 #define cond_height()	rect.h>0
 
-// #define cond_left()		(unsigned)player_pos.x>0
-// #define cond_right()	map_width*32>(unsigned)player_pos.x
-// #define cond_up()		(unsigned)player_pos.y>status_height+8
-// #define cond_down()		map_height*32>(unsigned)player_pos.y
 #define cond_left()		point_player_l_x>0
 #define cond_right()	point_player_r_x<point_end_x
 #define cond_up()		point_player_u_y>point_start_y
@@ -654,9 +651,9 @@ int main(int argc, char* argv[]) {
 		}
 		if(difficulty==2) {
 			if(in_move) {
-				filledCircleColor(shadow, (Sint16)(player_pos.x+16), (Sint16)(player_pos.y-shadow_pos.y+16), 20, transparent<<8|0xFF);
+				filledCircleColor(shadow2, (Sint16)(player_pos.x+16), (Sint16)(player_pos.y-shadow_pos2.y+16), 20, transparent<<8|SDL_ALPHA_OPAQUE);
 			}
-			//SDL_BlitSurface(shadow,NULL,screen,&shadow_pos);
+			//SDL_BlitSurface(shadow2,NULL,screen,&shadow_pos2);
 		}
 		
 		//launch map event
@@ -689,9 +686,47 @@ int main(int argc, char* argv[]) {
 		
 		if(difficulty==2) {
 			if(in_move) {//if teleported
-				filledCircleColor(shadow, (Sint16)(player_pos.x+16), (Sint16)(player_pos.y-shadow_pos.y+16), 20, transparent<<8|0xFF);
+				filledCircleColor(shadow2, (Sint16)(player_pos.x+16), (Sint16)(player_pos.y-shadow_pos2.y+16), 20, transparent<<8|SDL_ALPHA_OPAQUE);
 			}
-			SDL_BlitSurface(shadow,NULL,screen,&shadow_pos);
+			SDL_BlitSurface(shadow2,NULL,screen,&shadow_pos2);
+		}
+		
+		//show menu
+		if(show_menu) {
+			SDL_Rect rect;
+			
+			rect.x=96;
+			rect.y=160;
+			rect.w=192;
+			rect.h=96;
+			
+			//SDL_FillRect(screen, &rect, brown);//no alpha support
+			//rectangleColor(screen, rect.x, rect.y, (Sint16)(rect.x+rect.w), (Sint16)(rect.y+rect.h), brown<<8|0xCC);
+			//rectangleRGBA(screen, rect.x, rect.y, (Sint16)(rect.x+rect.w), (Sint16)(rect.y+rect.h), _brown.r, _brown.g, _brown.b, 0xCC);
+			boxColor(screen, rect.x, rect.y, (Sint16)(rect.x+rect.w), (Sint16)(rect.y+rect.h), brown<<8|0xCC);
+			//boxRGBA(screen, rect.x, rect.y, (Sint16)(rect.x+rect.w), (Sint16)(rect.y+rect.h), _brown.r, _brown.g, _brown.b, 0xCC);
+			text_surface = TTF_RenderText_Blended(font, "Change Difficulty level", _white);
+			if(text_surface!=NULL) {
+				rect.x=(Sint16)(rect.x+16);
+				rect.y=(Sint16)(rect.y+10);
+				SDL_BlitSurface(text_surface,NULL,screen,&rect);
+				SDL_FreeSurface(text_surface);
+			}
+			text_surface = TTF_RenderText_Blended(font, "F1 - easy", _white);
+			if(text_surface!=NULL) {
+				rect.y=(Sint16)(rect.y+20);
+				SDL_BlitSurface(text_surface,NULL,screen,&rect);
+			}
+			text_surface = TTF_RenderText_Blended(font, "F2 - medium", _white);
+			if(text_surface!=NULL) {
+				rect.y=(Sint16)(rect.y+20);
+				SDL_BlitSurface(text_surface,NULL,screen,&rect);
+			}
+			text_surface = TTF_RenderText_Blended(font, "F3 - hard", _white);
+			if(text_surface!=NULL) {
+				rect.y=(Sint16)(rect.y+20);
+				SDL_BlitSurface(text_surface,NULL,screen,&rect);
+			}
 		}
 		
 		if(x_diff==0 && y_diff==0) {
@@ -710,9 +745,10 @@ int main(int argc, char* argv[]) {
 	//cleaning
 	SDL_FreeSurface(screen);
 	SDL_FreeSurface(player);
-	if(difficulty==3||difficulty==2) {
+	//if(difficulty==3||difficulty==2) {
 		SDL_FreeSurface(shadow);
-	}
+		SDL_FreeSurface(shadow2);
+	//}
 	SDL_FreeSurface(fond);
 
 	//SDLNet_Quit();
