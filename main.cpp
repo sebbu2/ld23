@@ -127,6 +127,7 @@ int main(int argc, char* argv[]) {
 		exit(error_code);
 	}
 	
+#ifndef NOAUDIO
 	// load support for the music formats
 	int flags=MIX_INIT_MP3|MIX_INIT_OGG|MIX_INIT_MOD|MIX_INIT_FLAC;
 	int initted=Mix_Init(flags);
@@ -156,6 +157,7 @@ int main(int argc, char* argv[]) {
 	
 	// allocate 16 mixing channels
 	Mix_AllocateChannels(16);
+#endif
 	
 	//load level
 	vvui_t level;
@@ -261,6 +263,7 @@ int main(int argc, char* argv[]) {
 						(event.motion.x>4 && event.motion.x<108) &&
 						(event.motion.y>4 && event.motion.y<48) &&
 						!playing ) {
+#ifndef NOAUDIO
 							if(Mix_PlayChannel(-1, sample, 0)==-1) {
 								fprintf(stderr, "Mix_PlayChannel: %s\n",Mix_GetError());
 								// may be critical error, or maybe just no channels were free.
@@ -268,6 +271,7 @@ int main(int argc, char* argv[]) {
 								// handle error
 								exit(error_code);
 							}
+#endif
 						}
 					break;
 				case SDL_QUIT:
@@ -657,11 +661,16 @@ int main(int argc, char* argv[]) {
 	
 	//cleaning
 	SDL_FreeSurface(screen);
+	SDL_FreeSurface(player);
+	SDL_FreeSurface(shadow);
+	SDL_FreeSurface(fond);
 
 	//SDLNet_Quit();
+#ifndef NOAUDIO
 	Mix_FreeChunk(sample);
 	Mix_CloseAudio();
 	Mix_Quit();
+#endif
 	TTF_Quit();
 	SDL_Quit();
 	
