@@ -27,12 +27,35 @@ SDL_Color get_color(Uint32 color) {
 
 int main(int argc, char* argv[]) {
 	printf("argc==%d\n", argc);
+	/* difficulty
+	0	unset
+	1	easy
+	2	medium
+	3	hard
+	*/
+	int difficulty=0;
 	if(argc>=2) {
 		if( strcmp(argv[1],"-v")==0 || strcmp(argv[1],"--version")==0 ) {
 			printf("%s version 0.0.1\n", argv[0]);
 			printf("sebbu's entry for LD23.\n");
+			return 0;
 		}
-		return 0;
+		else if( strcmp(argv[1],"-1")==0 || strcmp(argv[1],"--easy")==0 || strcmp(argv[1],"-e")==0 ) {
+			difficulty=1;
+		}
+		else if( strcmp(argv[1],"-2")==0 || strcmp(argv[1],"--medium")==0 || strcmp(argv[1],"-m")==0 ) {
+			difficulty=2;
+		}
+		else if( strcmp(argv[1],"-3")==0 || strcmp(argv[1],"--hard")==0 ) {
+			difficulty=3;
+		}
+		else {
+			printf("Unknown argument(s) !\n");
+			return 1;
+		}
+	}
+	if(difficulty==0||difficulty>3) {
+		difficulty=1;
 	}
 	my_errors[(int)EAGAIN]="EAGAIN";
 	my_errors[(int)EBADF]="EBADF";
@@ -115,13 +138,16 @@ int main(int argc, char* argv[]) {
 	}
 	SDL_SetColorKey( player, SDL_SRCCOLORKEY, SDL_MapRGB(player->format, 255, 255, 255) );
 	//shadow
-	SDL_Surface *shadow=IMG_Load("mask.png");
+	SDL_Surface *shadow=NULL;
 	SDL_Rect shadow_pos={0,0,0,0};
-	if(shadow==NULL) {
-		fprintf(stderr, "IMG_Load: %s\n", IMG_GetError());
-		exit(error_code);
+	if(difficulty==3) {
+		shadow=IMG_Load("mask.png");
+		if(shadow==NULL) {
+			fprintf(stderr, "IMG_Load: %s\n", IMG_GetError());
+			exit(error_code);
+		}
+		SDL_SetColorKey( shadow, SDL_SRCCOLORKEY, SDL_MapRGB(shadow->format, 255, 255, 255) );
 	}
-	SDL_SetColorKey( shadow, SDL_SRCCOLORKEY, SDL_MapRGB(shadow->format, 255, 255, 255) );
 	
 	//font
 	TTF_Font *font;
@@ -519,7 +545,7 @@ int main(int argc, char* argv[]) {
 		}
 		
 		//draw shadow
-		{
+		if(difficulty==3) {
 			shadow_pos.x=(short)(player_pos.x-32);
 			shadow_pos.y=(short)(player_pos.y-32);
 			if(shadow_pos.y<(short)status_height) {
@@ -668,7 +694,9 @@ int main(int argc, char* argv[]) {
 	//cleaning
 	SDL_FreeSurface(screen);
 	SDL_FreeSurface(player);
-	SDL_FreeSurface(shadow);
+	if(difficulty==3) {
+		SDL_FreeSurface(shadow);
+	}
 	SDL_FreeSurface(fond);
 
 	//SDLNet_Quit();
