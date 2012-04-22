@@ -10,7 +10,9 @@
 #include <SDL_image.h>
 #include <SDL/SDL_gfxPrimitives.h>
 #include <SDL_ttf.h>
+#ifndef NOAUDIO
 #include <SDL_mixer.h>
+#endif
 
 #include "main.hpp"
 
@@ -43,7 +45,11 @@ int main(int argc, char* argv[]) {
 	
 	//SDL init
 	++error_code;//1
+#ifndef NOAUDIO
 	if( SDL_Init(SDL_INIT_AUDIO|SDL_INIT_VIDEO|SDL_INIT_NOPARACHUTE) < 0 ) {
+#else
+	if( SDL_Init(SDL_INIT_VIDEO|SDL_INIT_NOPARACHUTE) < 0 ) {
+#endif
 		fprintf(stderr, "Unable to init SDL: %s\n", SDL_GetError());
 		exit(error_code);
 	}
