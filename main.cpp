@@ -500,9 +500,6 @@ int main(int argc, char* argv[]) {
 		//SDL_FillRect(screen, NULL, transparent); // transparent
 		//SDL_FillRect(screen, NULL, st_blue); // st_blue
 		
-		//draw labyrinth
-		SDL_BlitSurface(fond,NULL,screen,&fond_pos);
-		
 		//draw rounded box
 		//roundedBoxColor(screen, 4, 4, 108, 28, 4, st_blue);
 		roundedBoxColor(screen, 4, 4, 108, 28, 4, st_blue<<8|0xFF);
@@ -562,6 +559,9 @@ int main(int argc, char* argv[]) {
 				}
 			}
 		}
+		
+		//draw labyrinth
+		SDL_BlitSurface(fond,NULL,screen,&fond_pos);
 		
 		//draw player
 		{
