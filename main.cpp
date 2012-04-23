@@ -16,6 +16,30 @@
 
 #include "main.hpp"
 
+#if SDL_GFXPRIMITIVES_MICRO<22
+//ignore rounded, draw plain ones
+//Rounded Rectangle
+int roundedRectangleColor(SDL_Surface * dst, Sint16 x1, Sint16 y1, 
+                Sint16 x2, Sint16 y2, Sint16 rad, Uint32 color) {
+	return rectangleColor(dst, x1, y1, x2, y2, color);
+}
+int roundedRectangleRGBA(SDL_Surface * dst, Sint16 x1, Sint16 y1,
+                Sint16 x2, Sint16 y2, Sint16 rad, 
+                Uint8 r, Uint8 g, Uint8 b, Uint8 a) {
+	return rectangleRGBA(dst, x1, y1, x2, y2, r, g, b, a);
+}
+//Rounded Box
+int roundedBoxColor(SDL_Surface * dst, Sint16 x1, Sint16 y1, 
+                Sint16 x2, Sint16 y2, Sint16 rad, Uint32 color) {
+	return boxColor(dst, x1, y1, x2, y2, color);
+}
+int roundedBoxRGBA(SDL_Surface * dst, Sint16 x1, Sint16 y1, 
+                Sint16 x2, Sint16 y2, Sint16 rad, 
+                Uint8 r, Uint8 g, Uint8 b, Uint8 a) {
+	return boxRGBA(dst, x1, y1, x2, y2, r, g, b, a);
+}
+#endif
+
 SDL_Color get_color(Uint32 color) {
 	SDL_Color res;
 	res.r=(Uint8)((color>>16)&0xFF);
