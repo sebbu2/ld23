@@ -294,6 +294,8 @@ int main(int argc, char* argv[]) {
 	SDL_Surface *text_surface=NULL;
 	bool in_move=true;
 	bool show_menu=true;//default
+	//int hp=100;
+	const char* hp_text="HP: 100/100";
 	unsigned int cheat=0;
 	unsigned int map_height=(unsigned)level.size();
 	unsigned int map_width=(unsigned)level.at(0).size();
@@ -484,7 +486,7 @@ int main(int argc, char* argv[]) {
 		roundedBoxColor(screen, 6, 6, 106, 26, 4, st_blue2<<8|0xFF);
 		
 		//draw text
-		text_surface = TTF_RenderText_Blended(font, "HP: 100/100", _green2);
+		text_surface = TTF_RenderText_Blended(font, hp_text, _green2);
 		if(text_surface!=NULL) {
 			SDL_Rect pos;
 			pos.x=12;
